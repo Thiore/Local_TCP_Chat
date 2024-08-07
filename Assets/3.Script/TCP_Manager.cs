@@ -73,6 +73,7 @@ public class TCP_Manager : MonoBehaviour
 
             while(client.Connected)
             {
+                
                 string readData = reader.ReadLine();
                 message.Message(readData);
             }
@@ -118,6 +119,7 @@ public class TCP_Manager : MonoBehaviour
 
             while(client.Connected)
             {
+                
                 string readData = reader.ReadLine();
                 message.Message(readData);
             }
@@ -134,7 +136,7 @@ public class TCP_Manager : MonoBehaviour
         //만약 내가 메세지를 보냈다면 내가 보낸 메세지도 MessageBox에 넣어야함
         if(Sending_Message(Message_Box.text))
         {
-            message.Message(Message_Box.text);
+            message.Message($"{SQL_Manager.instance.info.User_Name} : {Message_Box.text}");
             Message_Box.text = string.Empty;
         }
     }
@@ -142,7 +144,7 @@ public class TCP_Manager : MonoBehaviour
     {
         if(writer != null)
         {
-            writer.WriteLine(message);
+            writer.WriteLine($"{SQL_Manager.instance.info.User_Name} : {message}");
             return true;
         }
         else
@@ -151,5 +153,7 @@ public class TCP_Manager : MonoBehaviour
             return false;
         }
     }
+
+
 
 }

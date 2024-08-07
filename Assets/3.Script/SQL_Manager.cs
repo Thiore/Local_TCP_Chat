@@ -37,17 +37,21 @@ public class SQL_Manager : MonoBehaviour
         {
             instance = this;
             DontDestroyOnLoad(gameObject);
+            info = null;
+            
+            
         }
         else
         {
             Destroy(gameObject);
             return;
         }
+
         DB_Path = Application.dataPath + "/Database";
         string serverinfo = Server_set(DB_Path);
         try
         {
-            if(serverinfo.Equals(string.Empty))
+            if (serverinfo.Equals(string.Empty))
             {
                 Debug.Log("server info = null");
                 return;
@@ -56,11 +60,10 @@ public class SQL_Manager : MonoBehaviour
             connection.Open();
             Debug.Log("DB Open Connection Complete");
         }
-        catch(Exception e)
+        catch (Exception e)
         {
             Debug.Log(e.Message);
         }
-
     }
 
     private string Server_set(string path)
@@ -153,7 +156,93 @@ public class SQL_Manager : MonoBehaviour
                 reader.Close();
             return false;
         }
+    }
 
+    public bool Join(string ID, string Password, string PhoneNum)
+    {
+        try
+        {
+            if (!Connection_Check(connection))
+            {
+                return false;
+            }
+            string SQL_Command = string.Format(@"INSERT INTO user_info VALUES ('{0}', '{1}', {2});",ID,Password, PhoneNum);
+            MySqlCommand cmd = new MySqlCommand(SQL_Command, connection);
+            cmd.ExecuteNonQuery();
+            return true;
+        }
+        catch (Exception e)
+        {
+            Debug.Log(e.Message);
+            if (!reader.IsClosed)
+                reader.Close();
+            return false;
+        }
+    }
+
+    public bool Change(string ID, string Password, string PhoneNum)
+    {
+        try
+        {
+            if (!Connection_Check(connection))
+            {
+                return false;
+            }
+            string SQL_Command = string.Format(@"UPDATE user_info SET User_Password = '{1}', User_PhoneNum = '{2}' WHERE User_Name = '{0}';", ID, Password, PhoneNum);
+            MySqlCommand cmd = new MySqlCommand(SQL_Command, connection);
+            cmd.ExecuteNonQuery();
+            return true;
+        }
+        catch (Exception e)
+        {
+            Debug.Log(e.Message);
+            if (!reader.IsClosed)
+                reader.Close();
+            return false;
+        }
+    }
+
+    public int Check_Name(string ID)
+    {
+        // 0 = 연결 실패
+        // 1 = 동일한 사용자 존재
+        // 2 = 사용할 수 있는 이름입니다.
+        try
+        {
+            if (!Connection_Check(connection))
+            {
+                return 0;
+            }
+            string SQL_Command = string.Format($@"SELECT User_Name FROM user_info WHERE User_Name = '{ID}';");
+            MySqlCommand cmd = new MySqlCommand(SQL_Command, connection);
+            reader = cmd.ExecuteReader();
+            if (reader.HasRows)
+            {//reader가 읽은 데이터가 1개이상 존재합니까?
+                //읽은 데이터를 하나씩 나열해야한다.
+                while (reader.Read())//reader가 읽고 있는 상황이라면
+                {
+                    //삼항연산자 - bool ? true : false;
+                    string name = reader.IsDBNull(0) ? string.Empty : (string)reader["User_Name"];
+                    if (!name.Equals(string.Empty))
+                    {
+                        if (!reader.IsClosed)
+                            reader.Close();
+
+                        return 1;
+                    }
+                    return 1;
+                }//while 종료
+            }//if종료
+            if (!reader.IsClosed)
+                reader.Close();
+            return 2;
+        }
+        catch (Exception e)
+        {
+            Debug.Log(e.Message);
+            
+            return 0;
+        }
     }
 
 
